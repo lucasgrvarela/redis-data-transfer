@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -45,18 +46,29 @@ func main() {
 		return
 	}
 
+	totalGetTime := time.Duration(0)
+	totalSetTime := time.Duration(0)
+
 	for _, key := range keys {
+		// Measure time taken for GET operation
+		startTime := time.Now()
 		dumpData, err := oldClient.Dump(context.Background(), key).Result()
 		if err != nil {
 			fmt.Println("Error getting dump data for key:", key, err)
 			return
 		}
+		getTime := time.Since(startTime)
+		totalGetTime += getTime
 
+		// Measure time taken for SET operation
+		startTime = time.Now()
 		err = newClient.Restore(context.Background(), key, 0, dumpData).Err()
 		if err != nil {
 			fmt.Println("Error restoring data for key:", key, err)
 			return
 		}
+		setTime := time.Since(startTime)
+		totalSetTime += setTime
 	}
 
 	newKeysCount, err := newClient.DBSize(context.Background()).Result()
@@ -68,4 +80,6 @@ func main() {
 	fmt.Println("Data transfer completed successfully.")
 	fmt.Println("Number of keys in the old Redis database:", oldKeysCount)
 	fmt.Println("Number of keys in the new Redis database:", newKeysCount)
+	fmt.Println("Total time taken for GET operations:", totalGetTime)
+	fmt.Println("Total time taken for SET operations:", totalSetTime)
 }
