@@ -1,0 +1,15 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: my-go-app-job
+spec:
+  template:
+    spec:
+      containers:
+      - name: my-go-app
+        image: <your-docker-image>
+        args:
+        - "-old=<OLD_REDIS_URL>"
+        - "-new=<NEW_REDIS_URL>"
+      restartPolicy: Never
+  backoffLimit: 3
