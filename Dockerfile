@@ -6,4 +6,4 @@ COPY . .
 
 RUN go build
 
-CMD ["/app/redis-data-transfer"]
+ENTRYPOINT ["/app/redis-data-transfer"]
