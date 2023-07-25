@@ -1,12 +1,12 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: my-go-app-job
+  name: redis-data-transfer-job
 spec:
   template:
     spec:
       containers:
-      - name: my-go-app
+      - name: redis-data-transfer
         image: <your-docker-image>
         args:
         - "-old=<OLD_REDIS_URL>"
