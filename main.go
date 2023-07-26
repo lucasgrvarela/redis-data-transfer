@@ -72,15 +72,16 @@ func main() {
 					continue
 				}
 
-				if exists == 1 { // 1 exist, 0 not exist
+				if exists == 1 { // 1 exist
 					dumpData, err := oldClient.Dump(context.Background(), key).Result()
 					if err != nil {
 						log.Printf("Error getting dump data for key %s: %v\n", key, err)
 						continue
 					}
 					newPipeline.Restore(context.Background(), key, 0, dumpData)
+				} else { // 0 not exist
+					log.Printf("Key doesn't exist with value, probably it's a (nil) value and type = none, %s\n", key)
 				}
-
 				bar.Add(1)
 			}
 		}()
