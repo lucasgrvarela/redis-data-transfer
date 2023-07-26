@@ -68,7 +68,7 @@ func main() {
 
 				dumpData, err := oldClient.Dump(context.Background(), key).Result()
 				if err != nil {
-					log.Fatalf("Error getting dump data for key %s: %v", key, err)
+					log.Printf("Error getting dump data for key %s: %v\n", key, err)
 				}
 
 				newPipeline.Restore(context.Background(), key, 0, dumpData)
