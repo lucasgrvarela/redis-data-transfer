@@ -66,12 +66,20 @@ func main() {
 					return
 				}
 
-				dumpData, err := oldClient.Dump(context.Background(), key).Result()
+				exists, err := oldClient.Exists(context.Background(), key).Result()
 				if err != nil {
-					log.Printf("Error getting dump data for key %s: %v\n", key, err)
+					log.Printf("Error checking existence of key %s: %v\n", key, err)
+					continue
 				}
 
-				newPipeline.Restore(context.Background(), key, 0, dumpData)
+				if exists == 1 { // 1 exist, 0 not exist
+					dumpData, err := oldClient.Dump(context.Background(), key).Result()
+					if err != nil {
+						log.Printf("Error getting dump data for key %s: %v\n", key, err)
+						continue
+					}
+					newPipeline.Restore(context.Background(), key, 0, dumpData)
+				}
 
 				bar.Add(1)
 			}
