@@ -107,4 +107,9 @@ func main() {
 	log.Println("Data transfer completed successfully.")
 	log.Printf("Number of keys in the old Redis database: %d", oldKeysCount)
 	log.Printf("Number of keys in the new Redis database: %d", newKeysCount)
+
+	if oldKeysCount != newKeysCount {
+		log.Printf("Exiting job with error, oldKeyCount != newKeyscount")
+		os.Exit(1)
+	}
 }
