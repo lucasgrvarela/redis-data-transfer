@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/schollz/progressbar/v3"
@@ -27,19 +28,25 @@ func main() {
 	log.Println("Starting the Redis data transfer application...")
 
 	oldClient := redis.NewClient(&redis.Options{
-		Addr: oldRedisURL,
-		DB:   0,
+		Addr:         oldRedisURL,
+		DB:           0,
+		ReadTimeout:  10 * time.Minute,
+		WriteTimeout: 10 * time.Minute,
 	})
 
 	newClient := redis.NewClient(&redis.Options{
-		Addr: newRedisURL,
-		DB:   0,
+		Addr:         newRedisURL,
+		DB:           0,
+		ReadTimeout:  10 * time.Minute, // this will define the WriteTimeout too
+		WriteTimeout: 10 * time.Minute,
 	})
 
 	oldKeysCount, err := oldClient.DBSize(context.Background()).Result()
 	if err != nil {
 		log.Fatalf("Error getting the count of keys from the old Redis database: %v", err)
 	}
+
+	log.Printf("Number of keys in the old Redis database (before transfer): %d", oldKeysCount)
 
 	_ = newClient.FlushAll(context.Background())
 
@@ -78,7 +85,13 @@ func main() {
 						log.Printf("Error getting dump data for key %s: %v\n", key, err)
 						continue
 					}
-					newPipeline.Restore(context.Background(), key, 0, dumpData)
+
+					ttl, err := oldClient.TTL(context.Background(), key).Result()
+					if err != nil {
+						log.Printf("Error getting TTL for key %s: %v\n", key, err)
+					}
+
+					newPipeline.RestoreReplace(context.Background(), key, ttl, dumpData)
 				} else { // 0 not exist
 					log.Printf("Key doesn't exist with value, probably it's a (nil) value and type = none, %s\n", key)
 				}
